@@ -1,14 +1,39 @@
+'use client'
+
 import { Inter } from 'next/font/google'
 import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Menu from '@/componentes/menu';
-import Image from 'next/image'
-
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/hooks/SessionUtilClient";
 const inter = Inter({ subsets: ['latin'] })
 
 export default function RootLayout({ children }) {
   //obtener fecha actual
   const fecha = new Date();
   const cadena = `${fecha.getDate()} de ${fecha.toLocaleString('default', { month: 'long' })} del ${fecha.getFullYear()}, ${fecha.getHours()}:${fecha.getMinutes()}`;
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = getToken(); // Obtener el token desde sessionStorage
+  
+    // Lista de rutas que no requieren token
+    const publicRoutes = ["/principal"]; // Reemplaza con las rutas que no requieren token
+  
+    // Obtener la ruta actual
+    const currentRoute = window.location.pathname;
+  
+    // Verificar si la ruta actual está en la lista de rutas públicas
+    const isPublicRoute = publicRoutes.includes(currentRoute);
+  
+    // Verificar si no hay token y no estamos en una ruta pública
+    if (!token && !isPublicRoute) {
+      // Si no hay token y no estamos en una ruta pública,
+      // redirigir al usuario a la página de inicio de sesión
+      router.push('/InicioSesion');
+    } 
+  }, [router.asPath]); // Agrega router.asPath como dependencia de useEffect
 
   return (
     <html lang="en">
@@ -17,33 +42,20 @@ export default function RootLayout({ children }) {
         <title>Clima</title>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" />
       </head>
-      <body className={inter.className} style={{ backgroundColor: '#85c1e9' }}>
+      <body className={inter.className} style={{ backgroundColor: '#d6eaf8' }}>
         <div className='container-fluid'>
-          <header>
+          <header style={{ position: 'fixed', top: 0, right: 0, left: 0, zIndex: 1030 }}>
             <Menu />
           </header>
-          <section className='container'>
-            <div className="row">
-              <div className="col">
-                <Image src="/public/clima.png" alt="Icono de clima" width={200} height={200} />
-                <h5 style={{ color: 'blue' }}>Sistema para la predicción del clima</h5>
-              </div>
-              <div className="col">
-                <Image src="/public/clima_pre.jpeg" alt="Imagen relacionada con el clima" width={500} height={300} />
-                <h2>{cadena}</h2>
-                <h4>Este sistema predice el clima a partir de los siguientes datos:</h4>
-                <ul>
-                  <li>Humedad</li>
-                  <li>Presión</li>
-                  <li>Temperatura</li>
-                </ul>
-              </div>
-            </div>
+          <section className='container pt-5 mt-5'>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop:'50px', marginLeft:'-1100px', marginBottom:'30px'}}>
+    <h2>{cadena}</h2>
+</div>
             {children}
           </section>
         </div>
         <div>
-          <footer className='py-10 flex justify-center items-center' style={{ color: 'blue' }}>
+          <footer className='py-10 d-flex justify-content-center align-items-center' style={{ color: '#205375' , marginTop: '10px'}}>
             <h6>Realizada por estudiantes de la UNL/Computación</h6>
           </footer>
         </div>
@@ -51,4 +63,3 @@ export default function RootLayout({ children }) {
     </html>
   )
 }
-

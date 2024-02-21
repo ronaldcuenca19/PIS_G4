@@ -3,16 +3,29 @@ import Link from "next/link";
 import Menu from '@/componentes/menu';
 //import Footer from '@/componentes/footer';
 import mensajes from "@/componentes/Mensajes";
-import { obtenerR } from "@/hooks/Conexion";
+import { obtenerB } from "@/hooks/Conexion";
+import { getToken } from "@/hooks/SessionUtilClient";
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from "react";
 
 export default function Page() {
+    const router = useRouter();
+    const token = getToken();
     const [obt, setObt] = useState(false);
     const [personas, setPersonas] = useState([]);
 
     useEffect(() => {
-        if (!obt) {
-            obtenerR('admin/personas').then((info) => {
+        // Verificar el rol del usuario almacenado en sessionStorage
+        const rol = sessionStorage.getItem('rol');
+        if (rol !== 'administrador'|| !token)  {
+            // Si el usuario no tiene el rol adecuado, redirigir a una página de acceso denegado
+            router.push('/InicioSesion'); // Reemplaza '/acceso-denegado' con la ruta de la página de acceso denegado
+        }
+    }, []);
+
+    useEffect(() => {
+         if (!obt) {
+            obtenerB('admin/personas', token).then((info) => {
                 console.log(info)
                 if (info.code === 200) {
                     // Filtrar las personas cuya cuenta esté activa (estado = true)
@@ -27,7 +40,7 @@ export default function Page() {
     }, [obt]);
 
     const handleBaja = (externalId) => {
-        obtenerR('admin/personas/cambiarEstado/' + externalId + '/' + false).then((info) => {
+        obtenerB('admin/personas/cambiarEstado/' + externalId + '/' + false, token).then((info) => {
             console.log(info)
             if (info.code === 200) {
                 mensajes("Cuenta dada de baja", "Informacion", "success")
@@ -40,24 +53,19 @@ export default function Page() {
     return (
 
         <div className="row">
-            <Menu />
-            <h1 style={{ textAlign: "center" }}>Usuarios Registrados</h1>
-            <div className="container-fluid">
-                <div className="input-group mb-3">
-                    <input type="text" className="form-control" placeholder="Buscar usuario" aria-describedby="button-addon2" />
-                    <button className="btn btn-outline-secondary" type="button" id="button-addon2">Buscar</button>
-                </div>
+            <h1 style={{ color: '#205375' ,display: 'flex', justifyContent: 'center', alignItems: 'center'}}>Usuarios Registrados</h1>
+            <div className="container-fluid" >
                 <div className="container">
                     <div className="row justify-content-center">
                         <div className="col-12 mb-4 text-center">
                             <div className="btn-group" role="group">
-                                <Link href="/persona/registrar" className="btn btn-success font-weight-bold">Registrar</Link>
+                                <Link href="/persona/registrar" className="btn btn-success font-weight-bold" style={{fontSize:'25px'}}>Registrar</Link>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="col-12">
-                    <table className="table table-bordered" style={{ borderColor: "ActiveBorder" }}>
+                <div className="col-12" style={{ width: '2000px' , marginLeft:'-350px'}}>
+                    <table className="table table-bordered" style={{ borderColor: "ActiveBorder" , fontSize:'25px'}}>
                         <thead className="table-active">
                             <tr>
                                 <th >id</th>
@@ -78,9 +86,9 @@ export default function Page() {
                                     <td>{dato.celular}</td>
                                     <td>{dato.cedula}</td>
                                     <td>{dato.cuenta.correo}</td>
-                                    <td>
-                                        {<Link style={{ marginRight: "5px" }} href="/persona/editar/[external]" as={`persona/editar/${dato.id}`} className="btn btn-warning font-weight-bold">Editar</Link>}
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    <td style={{width:'280px'}}>
+                                        {<Link style={{ marginRight: "15px" , fontSize:'20px'}} href="/persona/editar/[external]" as={`persona/editar/${dato.id}`} className="btn btn-warning font-weight-bold">Editar</Link>}
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal" style={{fontSize:'20px'}}>
                                             Bajar Cuenta
                                         </button>
                                         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -94,8 +102,8 @@ export default function Page() {
                                                         Estas seguro que quieres bajar esta cuenta?
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onClick={()=>handleBaja(dato.id)}>Confirmar</button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style={{fontSize:'20px'}}>Cancelar</button>
+                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style={{fontSize:'20px'}} onClick={()=>handleBaja(dato.id)}>Confirmar</button>
                                                     </div>
                                                 </div>
                                             </div>
